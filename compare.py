@@ -13,10 +13,10 @@ if __name__ == '__main__':
     n_arms = 5
 
     T = 1000
-    opt = (np.sort(arm_probabilities)[::-1][:n_pos]*position_probabilities.sum())
+    opt = (np.sort(arm_probabilities)[::-1][:n_pos]*position_probabilities).sum()
     print(opt)
 
-    n_experiments = 50
+    n_experiments = 10
     ts_rewards_per_experiment = []
     ucb_rewards_per_experiment = []
 
@@ -41,10 +41,4 @@ if __name__ == '__main__':
 
 
     
-    plt.figure(1)
-    plt.ylabel("Regret")
-    plt.xlabel("t")
-    plt.plot(np.cumsum(np.mean(opt - ts_rewards_per_experiment, axis=0)), 'r')
-    plt.plot(np.cumsum(np.mean(opt - ucb_rewards_per_experiment, axis=0)), 'g')
-    plt.legend(["TS", "Greedy"])
-    plt.show()
+    print(ucb_rewards_per_experiment)

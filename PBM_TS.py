@@ -1,4 +1,3 @@
-from numpy.core.defchararray import count
 from Learner import Learner
 import numpy as np
 import scipy.stats
@@ -11,12 +10,15 @@ class PBM_TS(Learner):
         self.n_arms = n_arms
         self.n_positions = n_positions
         assert n_positions == len(self.position_probabilities)
-        self.S_kl = np.zeros((n_arms, n_positions))
-        self.S_k = np.zeros(n_arms)
-        self.N_kl = np.zeros((n_arms, n_positions))
-        self.N_k = np.zeros(n_arms)
         self.tilde_N_kl = np.zeros((n_arms, n_positions))
         self.tilde_N_k = np.zeros(n_arms)
+
+        self.N_kl = np.zeros((n_arms, n_positions))
+        self.N_k = np.zeros(n_arms)
+
+        self.S_kl = np.zeros((n_arms, n_positions))
+        self.S_k = np.zeros(n_arms)
+
         self.M = M
         self.beta_parameters = np.ones((n_arms, 2))
 
@@ -30,7 +32,7 @@ class PBM_TS(Learner):
         for pos in range(self.n_positions):
             pos_prob = self.position_probabilities[pos]
             a = self.S_kl[arm, pos]
-            b = self.N_kl[arm, pos]
+            b = self.N_kl[arm, pos] - self.S_kl[arm,pos]
             p += sc.xlog1py(b, -theta*pos_prob) + sc.xlogy(a, theta)
             p -= sc.betaln(a, b)
             p += a*np.log(pos_prob)
@@ -55,8 +57,8 @@ class PBM_TS(Learner):
         self.t += 1
         for pos, arm in enumerate(super_arm):
             self.S_kl[arm, pos] += reward[pos]
-            self.N_kl[arm, pos] += 1
             self.tilde_N_kl[arm, pos] += self.position_probabilities[pos]
+            self.N_kl[arm, pos] += 1
 
         self.S_k = self.S_kl.sum(axis=1)
         self.N_k = self.N_kl.sum(axis=1)
@@ -64,7 +66,7 @@ class PBM_TS(Learner):
 
         for arm in super_arm:
             pos = np.argmax(self.tilde_N_kl[arm, :])
-            self.beta_parameters[arm, 0] = max(self.S_kl[arm, pos])
+            self.beta_parameters[arm, 0] = max(self.S_kl[arm, pos] + 1, 1)
             self.beta_parameters[arm, 1] = max(self.tilde_N_kl[arm, pos] - self.S_kl[arm, pos] + 1, 1)
 
     def update_observations(self, pulled_arm, reward):

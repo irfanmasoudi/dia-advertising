@@ -34,7 +34,7 @@ class PBM_UCB(Learner):
         self.N_k = self.N_kl.sum(axis=1)
         self.tilde_N_k = self.tilde_N_kl.sum(axis=1)
 
-        self.empirical_means = self.S_k/self.tilde_N_kl
+        self.empirical_means = self.S_k/self.tilde_N_k
         self.confidence = np.sqrt(self.N_k/self.tilde_N_k)*np.sqrt(self.delta/(2*self.tilde_N_k))
         self.empirical_means[self.N_k == 0] = np.inf
         self.confidence[self.tilde_N_k == 0] = np.inf
